@@ -13,8 +13,8 @@
 #define DISSECTOR_SHORT_NAME "Template"
 #define DISSECTOR_FILTER_NAME "template"
 
-#define HIGHER_LEVEL_PROTOCOL "udp"
-#define PORT_NO 48350
+#define HIGHER_LEVEL_PROTOCOL "tcp"
+#define PORT_NO 1234
 
 
 // PROTOCOL HANDLE
@@ -30,8 +30,8 @@ static int hf_template_data = -1;
 static int hf_template_data1 = -1;
 static int hf_template_data2 = -1;
 
-#define TEMPLATE_DATA1_MASK               0xFF00ull
-#define TEMPLATE_DATA2_MASK               0x00FFull
+#define TEMPLATE_DATA1_MASK               0xFFFF0000ull
+#define TEMPLATE_DATA2_MASK               0x0000FFFFull
 
 static int * data_fields[] = {
 	&hf_template_data1,
@@ -65,7 +65,7 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 	// Preparing column info (upper window)
 	col_set_str(pinfo->cinfo, COL_PROTOCOL, DISSECTOR_SHORT_NAME);
 	col_clear(pinfo->cinfo, COL_INFO);
-	col_add_fstr(pinfo->cinfo, COL_INFO, "id: %" G_GUINT64_FORMAT, template_id);
+	col_add_fstr(pinfo->cinfo, COL_INFO, "id: %" G_GUINT32_FORMAT, template_id);
 
 	// Registering top tree
 	top_tree_item = proto_tree_add_item(tree, proto_template_protocol, tvb, 0, -1, ENC_NA);
@@ -93,8 +93,7 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 			hf_template_data,
 			ett_template_data,
 			data_fields,
-			ENC_LITTLE_ENDIAN,
-			BMT_NO_APPEND
+			ENC_LITTLE_ENDIAN
 		);
 	offset += 4;
 
@@ -103,7 +102,7 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 	return tvb_captured_length(tvb);
 }
 
-void proto_register_gemroc_udp (void)
+void proto_register_template_protocol (void)
 {
 	static hf_register_info hf[] = {
 		/* TEMPLATE FIELDS */
@@ -138,7 +137,7 @@ void proto_register_gemroc_udp (void)
 	};
 
 	// register protocol
-	proto_gemroc_udp = proto_register_protocol (
+	proto_template_protocol = proto_register_protocol (
 			DISSECTOR_FULL_NAME,      /* name        */
 			DISSECTOR_SHORT_NAME,     /* short name  */
 			DISSECTOR_FILTER_NAME     /* filter_name */
@@ -148,7 +147,7 @@ void proto_register_gemroc_udp (void)
 	proto_register_subtree_array(ett, array_length(ett));
 }
 
-void proto_reg_handoff_gemroc_udp (void)
+void proto_reg_handoff_template_protocol (void)
 {
 	static dissector_handle_t proto_handle;
 
