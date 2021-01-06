@@ -28,7 +28,7 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 	return tvb_captured_length(tvb);
 }
 
-void proto_register_gemroc_udp (void)
+void proto_register_template_protocol (void)
 {
 	static hf_register_info hf[] = {
 		/* HEADER FILEDS */
@@ -40,7 +40,7 @@ void proto_register_gemroc_udp (void)
 	};
 
 	// register protocol
-	proto_gemroc_udp = proto_register_protocol (
+	proto_template_protocol = proto_register_protocol (
 			/* name        */,
 			/* short name  */,
 			/* filter_name */
@@ -50,7 +50,7 @@ void proto_register_gemroc_udp (void)
 	proto_register_subtree_array(ett, array_length(ett));
 }
 
-void proto_reg_handoff_gemroc_udp (void)
+void proto_reg_handoff_template_protocol (void)
 {
 	static dissector_handle_t proto_handle;
 
