@@ -14,13 +14,13 @@ A decent text editor and `git` may be helpfull.
 ## Template files
 
 Two disssector files are provided as a guide:
-- `template.c` -- which contains a simple dissector for template protocol designed to be
+- `template.c` - which contains a simple dissector for template protocol designed to be
 a starting point for writing own dissector. The protocol contains 2 fields:
-	- id field -- 4 bytes
-	- data field -- 4 bytes that are split into:
-		- data1 -- mask `0xFFF00000`
-		- data2 -- mask `0x000FFFFF`
-- `template_bare.c` -- which contains a bare template that cannot be compiled
+	- id field - 4 bytes
+	- data field - 4 bytes that are split into:
+		- data1 - mask `0xFFF00000`
+		- data2 - mask `0x000FFFFF`
+- `template_bare.c` - which contains a bare template that cannot be compiled
 
 Additionaly there is a `CMakeLists.txt` file that can be used to compile template dissector
 or, with just a few modifications, used for own dissector.
@@ -33,12 +33,16 @@ The `CMakeListsCustom.txt` file may not be present, just copy `CMakeListsCustom.
 sample plugin paths.
 
 To complile the sample plugin just run
-`mkdir build && cd build && cmake .. && cmake --build . --target *dissector name*`
+```
+mkdir build && cd build && cmake .. && cmake --build . --target *dissector name*
+```
 at the top of Wiresharks source tree.
 A dissector name is the name specified inside the `CMakeLists.txt` file of the dissector.
 For the template dissector it is `template_dissector`.
 Alternatively, the whole Wireshark project (including the dissector) can be comiled with
-`mkdir build && cd build && cmake .. && cmake --build . --target all`.
+```
+mkdir build && cd build && cmake .. && cmake --build . --target all
+```
 
 If the plugin is meant for a specific version of Wireshark `git checkout tags/wireshark-1.2.3`
 can be used inside the source of Wireshark that is used for compiling the plugin.
