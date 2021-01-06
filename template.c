@@ -1,6 +1,7 @@
 #include "config.h"
 #include <epan/packet.h>
 #include <stdio.h>
+#include <assert.h>
 
 // Template Protocol:
 // id (4 bytes) data (4 bytes)
