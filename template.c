@@ -30,8 +30,8 @@ static int hf_template_data = -1;
 static int hf_template_data1 = -1;
 static int hf_template_data2 = -1;
 
-#define TEMPLATE_DATA1_MASK               0xFFFF0000ull
-#define TEMPLATE_DATA2_MASK               0x0000FFFFull
+#define TEMPLATE_DATA1_MASK               0xFFF00000ull
+#define TEMPLATE_DATA2_MASK               0x000FFFFFull
 
 static int * data_fields[] = {
 	&hf_template_data1,
