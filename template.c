@@ -55,7 +55,7 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 	proto_tree *top_tree;
 
 	guint offset = 0;
-	guint32 template_id _U_;
+	guint32 template_id;
 
 	assert(tvb_captured_length(tvb) == 8);
 
