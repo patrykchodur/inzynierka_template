@@ -22,7 +22,7 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 			- [Subtrees](#subtrees)
 			- [Subfields arrays](#subfields-arrays)
 			- [Bitmasks](#bitmasks)
-			- [Custom display functions)(#custom-display-functions)
+			- [Custom display functions](#custom-display-functions)
 		- [void proto\_register\_template\_protocol() function](#void-proto_register_template_protocol-function)
 			- [Protocol registration](#protocol-registration)
 			- [Header fields registration](#header-fields-registration)
