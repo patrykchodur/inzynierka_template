@@ -22,9 +22,13 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 			- [Subtrees](#subtrees)
 			- [Subfields arrays](#subfields-arrays)
 			- [Bitmasks](#bitmasks)
+			- [Custom display functions)(#custom-display-functions)
 		- [void proto\_register\_template\_protocol() function](#void-proto_register_template_protocol-function)
 			- [Protocol registration](#protocol-registration)
-			- [Header field register info](#header-field-register-info)
+			- [Header fields registration](#header-fields-registration)
+			- [Subtrees registration](#subtrees-registration)
+		- [void proto\_reg\_handoff\_template\_protocol() function](#void-proto_reg_handoff_template_protocol-function)
+		- [int dissect](#int-dissect)
 
 ## Requirements
 
@@ -260,11 +264,14 @@ Their bitmasks are defined using the `#define` directive
 #define TEMPLATE_DATA2_MASK  0x000FFFFFull
 ```
 
+##### Custom display functions
+
+
 #### void proto\_register\_template\_protocol() function
 
 The `void proto_register_template_protocol()` function is used to register
-the [protocol](#protocol-registration), it's [fields](#header-field-register-info) and
-[subtrees](#subtrees-array).
+the [protocol](#protocol-registration), it's [fields](#header-fields-registration) and
+[subtrees](#subtrees-registration).
 It contains the protocol fields definitions as well.
 
 ##### Protocol registration
@@ -291,10 +298,10 @@ proto_template_protocol = proto_register_protocol (
 	);
 ```
 
-##### Header field register info
+##### Header fields registration
 
-The protocol fields are defined using an array of type `hf_register_info`. The array is than passed
-to `void proto_register_field_array()` and bound to the protocol.
+The protocol fields are defined using an array of type `hf_register_info`. The array is than bound
+to the protocol by `void proto_register_field_array()` function.
 
 The `hf_register_info` struct consists of the [header field handle](#header-fields) pointer and `header_field_info`
 struct, which is defined as follows:
@@ -312,6 +319,114 @@ struct header_field_info {
 };
 ```
 
+Full description of its fields is provided in the `README.dissector` file from `doc` directory in Wireshark
+source code. A brief description of each parameter:
+- `name` variable should be filled with a short name of the protocol field.
+- `abbrev` is used to provide a filter name for the protocol field. The filter name should be a dot separated
+path of the protocol field. Filter names for [the template protocol](#template-protocol) are:
+	- `template.id`
+	- `template.data`
+	- `template.data.data1`
+	- `template.data.data2`
+- `type` tells the Wireshark what to do with the field. The types are prefixed with `FT_`. Some examples are:
+	- `FT_UINT32` - 32 bits unsigned int
+	- `FT_INT24` - 24 bits signed int
+	- `FT_FLOAT` - 32 bits float
+	- `FT_STRINGZ` - `NULL` (Zero) terminated string
+- `display` is used to specify the way of displaying a field. Available options depend on the `type`,
+for example integer types can specify base for their notation (e.g. `BASE_DEC`), but two options are special:
+	- `BASE_NONE` is used for fields that have only one way of displaying
+	- `BASE_CUSTOM` is used if a custom display function is provided
+- `strings` field is overloaded and it's meaning depend on the `display` parameter. If no content is needed `NULL`
+should be used. The field is usually used to provide:
+	- `value_string` array, which is used to translate integer value to a string that is used to display a field.
+It is helpfull for enum type fields, where specific codes have some meanings.
+	- [custom display function](#custom-display-functions) that takes `gchar` pointer and the
+field value. The function pointer is passed using a `CF_FUNC()` macro.
+- [bitmask](#bitmasks) is used to provide a field's bitmask. If none is needed, `0` constant should be used.
+- `blurb` is a field description
 
+Filled `hf_register_info` array is be passed to the `void proto_register_field_array()` function,
+which takes [the protocol handle](#protocol-handle), the just created array and it's length.
 
+The `hf_register_info` array and it's registration for [the template protocol](#template-protocol):
+
+```C
+static hf_register_info hf[] = {
+	/* TEMPLATE FIELDS */
+	{ &hf_template_id, 
+		{ "Template id", DISSECTOR_FILTER_NAME ".id", 
+		  FT_UINT32, BASE_DEC, NULL, 0x0,
+		  "Some id for template protocol", HFILL }
+	},
+	{ &hf_template_data,
+		{ "Data", DISSECTOR_FILTER_NAME ".data",
+		  FT_UINT32, BASE_HEX, NULL, 0x0,
+		  "Data section of template protocol", HFILL }
+	},
+
+	/* DATA_FIELDS */
+	{ &hf_template_data1,
+		{ "Data 1", DISSECTOR_FILTER_NAME ".data.data1",
+		  FT_UINT32, BASE_HEX, NULL, TEMPLATE_DATA1_MASK,
+		  "Data 1 from template protocol", HFILL }
+	},
+	{ &hf_template_data2,
+		{ "Data 2", DISSECTOR_FILTER_NAME ".data.data2",
+		  FT_UINT32, BASE_CUSTOM, CF_FUNC(&display_template_data2), TEMPLATE_DATA2_MASK,
+		  "Data 2 from template protocol", HFILL }
+	}
+};
+
+proto_register_field_array(proto_template_protocol, hf, array_length(hf));
+```
+
+##### Subtrees registration
+
+The [subtrees](#subtrees) are registred using the `void proto_register_subtree_array()` function,
+which takes an subtree pointer array and it's length.
+
+```C
+static gint *ett[] = {
+	&ett_template,
+	&ett_template_data
+};
+
+proto_register_subtree_array(ett, array_length(ett));
+```
+
+#### void proto\_reg\_handoff\_template\_protocol() function
+
+The handoff function is used to create a dissector handle and to add the protocol dissector to the dissector table.
+
+The creation of the dissector handle is done with a call to `dissector_handle_t create_dissector_handle()`.
+It takes the [dissect](#int-dissect) function and a [protocol handle](#protocol-handle).
+
+The dissector table is used to find a suitable dissector for the packet. Apart from "Custom tables", three
+table types are used:
+- "Heuristic tables" - used for heuristic dissectors. The packet is passed to the dissector, which decide whether
+to dissect the packet or not. If the packet is rejected, the next dissector in table is used.
+- "Integer tables" - a lower level dissector field and it's expected value is provided. If these values match,
+it means the dissector should be used. Functions used to add a dissector to these tables are:
+	- `void dissector_add_uint()`
+	- `void dissector_add_uint_range()`
+- "String tables" - same as "Integer tables" but strings are compared. The function used to register a dissector
+in these tables is `void dissector_add_string()`.
+
+[The template protocol](#template-protocol) is registered in the "Integer tables", as it compares the `"tcp.port"`
+value to `1234` protocol number.
+
+The definition of the `void proto_reg_handoff_template_protocol()` function:
+
+```C
+void proto_reg_handoff_template_protocol (void)
+{
+	static dissector_handle_t proto_handle;
+
+	proto_handle = create_dissector_handle(dissect, proto_template_protocol);
+	dissector_add_uint(HIGHER_LEVEL_PROTOCOL ".port", PORT_NO, proto_handle);
+}
+```
+
+#### int dissect() function
 
