@@ -21,6 +21,7 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 			- [Header fields](#header-fields)
 			- [Subtrees](#subtrees)
 			- [Subfields arrays](#subfields-arrays)
+			- [Bitmasks](#bitmasks)
 
 ## Requirements
 
@@ -239,4 +240,24 @@ static int * data_fields[] = {
 ```
 
 ##### Bitmasks
+
+Bitmask are used to extract the data from a value of a field, if only some
+bits of the number should be used. The two most common cases are:
+- the field does not use all it's bits (e.g. a number is sent in a 4 bytes field,
+but only 30 bits are used).
+- the field is a subfield.
+
+The bitmask is then used in a [header field register info](#header-file-register-info) of this field.
+
+In [the template protocol](#template-protocol) `data1` and `data2` fields need such extraction.
+Their bitmasks are defined using the `#define` directive
+
+```C
+#define TEMPLATE_DATA1_MASK  0xFFF00000ull
+#define TEMPLATE_DATA2_MASK  0x000FFFFFull
+```
+
+
+
+
 
