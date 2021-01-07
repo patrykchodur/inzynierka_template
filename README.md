@@ -52,10 +52,10 @@ or, with just a few modifications, used for own dissector.
 ### Template protocol
 
 The template protocol, for which the `template.c` dissector if written, contains 2 main fields:
-	- id field - 4 bytes
-	- data field - 4 bytes that are split into 2 fields:
-		- data1 - bits from 20 to 31 (mask `0xFFF00000`)
-		- data2 - bits from 0 to 19 (mask `0x000FFFFF`)
+- id field - 4 bytes
+- data field - 4 bytes that are split into 2 fields:
+	- data1 - bits from 20 to 31 (mask `0xFFF00000`)
+	- data2 - bits from 0 to 19 (mask `0x000FFFFF`)
 
 The packet is sent using the `TCP` protocol on port `1234`.
 
@@ -345,6 +345,7 @@ It is helpfull for enum type fields, where specific codes have some meanings.
 field value. The function pointer is passed using a `CF_FUNC()` macro.
 - [bitmask](#bitmasks) is used to provide a field's bitmask. If none is needed, `0` constant should be used.
 - `blurb` is a field description
+- the rest of the struct are internal fields. They should be filled using `H_FILL` macro.
 
 Filled `hf_register_info` array is be passed to the `void proto_register_field_array()` function,
 which takes [the protocol handle](#protocol-handle), the just created array and it's length.
