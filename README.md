@@ -28,7 +28,7 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 			- [Header fields registration](#header-fields-registration)
 			- [Subtrees registration](#subtrees-registration)
 		- [void proto\_reg\_handoff\_template\_protocol() function](#void-proto_reg_handoff_template_protocol-function)
-		- [int dissect](#int-dissect)
+		- [int dissect() function](#int-dissect-function)
 
 ## Requirements
 
@@ -431,3 +431,4 @@ void proto_reg_handoff_template_protocol (void)
 
 #### int dissect() function
 
+The `int dissect()` function is used to build a protocol tree
