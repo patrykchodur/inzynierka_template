@@ -8,14 +8,6 @@
 //     data:
 //     data1 (2 bytes) data2 (2bytes)
 
-// BASIC INFO FOR WIRESHARK UI
-#define DISSECTOR_FULL_NAME "Template Protocol"
-#define DISSECTOR_SHORT_NAME "Template"
-#define DISSECTOR_FILTER_NAME "template"
-
-#define HIGHER_LEVEL_PROTOCOL "tcp"
-#define PORT_NO 1234
-
 
 // PROTOCOL HANDLE
 static int proto_template_protocol = -1;
@@ -63,7 +55,7 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 	template_id = tvb_get_guint32(tvb, 0, ENC_LITTLE_ENDIAN);
 
 	// Preparing column info (upper window)
-	col_set_str(pinfo->cinfo, COL_PROTOCOL, DISSECTOR_SHORT_NAME);
+	col_set_str(pinfo->cinfo, COL_PROTOCOL, "Template");
 	col_clear(pinfo->cinfo, COL_INFO);
 	col_add_fstr(pinfo->cinfo, COL_INFO, "id: %" G_GUINT32_FORMAT, template_id);
 
@@ -107,24 +99,24 @@ void proto_register_template_protocol (void)
 	static hf_register_info hf[] = {
 		/* TEMPLATE FIELDS */
 		{ &hf_template_id, 
-			{ "Template id", DISSECTOR_FILTER_NAME ".id", 
+			{ "Template id", "template.id", 
 			  FT_UINT32, BASE_DEC, NULL, 0x0,
 			  "Some id for template protocol", HFILL }
 		},
 		{ &hf_template_data,
-			{ "Data", DISSECTOR_FILTER_NAME ".data",
+			{ "Data", "template.data",
 			  FT_UINT32, BASE_HEX, NULL, 0x0,
 			  "Data section of template protocol", HFILL }
 		},
 
 		/* DATA_FIELDS */
 		{ &hf_template_data1,
-			{ "Data 1", DISSECTOR_FILTER_NAME ".data.data1",
+			{ "Data 1", "template.data.data1",
 			  FT_UINT32, BASE_HEX, NULL, TEMPLATE_DATA1_MASK,
 			  "Data 1 from template protocol", HFILL }
 		},
 		{ &hf_template_data2,
-			{ "Data 2", DISSECTOR_FILTER_NAME ".data.data2",
+			{ "Data 2", "template.data.data2",
 			  FT_UINT32, BASE_CUSTOM, CF_FUNC(&display_template_data2), TEMPLATE_DATA2_MASK,
 			  "Data 2 from template protocol", HFILL }
 		},
@@ -138,9 +130,9 @@ void proto_register_template_protocol (void)
 
 	// register protocol
 	proto_template_protocol = proto_register_protocol (
-			DISSECTOR_FULL_NAME,      /* name        */
-			DISSECTOR_SHORT_NAME,     /* short name  */
-			DISSECTOR_FILTER_NAME     /* filter_name */
+			"Template Protocol",
+			"Template",
+			 "template"
 		);
 
 	proto_register_field_array(proto_template_protocol, hf, array_length(hf));
@@ -152,5 +144,5 @@ void proto_reg_handoff_template_protocol (void)
 	static dissector_handle_t proto_handle;
 
 	proto_handle = create_dissector_handle(dissect, proto_template_protocol);
-	dissector_add_uint(HIGHER_LEVEL_PROTOCOL ".port", PORT_NO, proto_handle);
+	dissector_add_uint("tcp.port", 1234, proto_handle);
 }
