@@ -3,6 +3,25 @@
 This project is meant to be used as a template for writing own Wireshark dissector.
 The resulting dissector will be a stand-alone plugin for Wireshark using `epan` API.
 
+## Table of contents
+
+- [Requrements](#requirements)
+- [Template files](#template-files)
+	- [Template protocol](#template-protocol)
+- [Compiling a dissector](#compiling-a-dissector)
+- [Installing a dissector](#installing-a-dissector)
+- [Testing a dissector](#testing-a-dissector)
+- [Writing a dissector](#writing-a-dissector)
+	- [`CMakeLists.txt` file](#cmakeliststxt-file)
+	- [Plugin source file](#plugin-source-file)
+		- [Dissecting a packet](#dissecting-a-packet)
+		- [Global scope](#global-scope)
+			- [Include directives](#include-directives)
+			- [Protocol handle](#protocol-handle)
+			- [Header fields](#header-fields)
+			- [Subtrees](#subtrees)
+			- [Subfields arrays)(#subfields-arrays)
+
 ## Requirements
 
 The programmer needs a Wireshark source tree. This can be obtained from
