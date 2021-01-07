@@ -1,6 +1,6 @@
 # Wireshark dissector template
 
-This project is meant to be used as a template for writing own Wireshark dissector.
+This project is meant to be used as guide for writing a Wireshark dissector.
 The resulting dissector will be a stand-alone plugin for Wireshark using `epan` API.
 
 ## Table of contents
@@ -355,24 +355,24 @@ The `hf_register_info` array and it's registration for [the template protocol](#
 static hf_register_info hf[] = {
 	/* TEMPLATE FIELDS */
 	{ &hf_template_id, 
-		{ "Template id", DISSECTOR_FILTER_NAME ".id", 
+		{ "Template id", "template.id", 
 		  FT_UINT32, BASE_DEC, NULL, 0x0,
 		  "Some id for template protocol", HFILL }
 	},
 	{ &hf_template_data,
-		{ "Data", DISSECTOR_FILTER_NAME ".data",
+		{ "Data", "template.data",
 		  FT_UINT32, BASE_HEX, NULL, 0x0,
 		  "Data section of template protocol", HFILL }
 	},
 
 	/* DATA_FIELDS */
 	{ &hf_template_data1,
-		{ "Data 1", DISSECTOR_FILTER_NAME ".data.data1",
+		{ "Data 1", "template.data.data1",
 		  FT_UINT32, BASE_HEX, NULL, TEMPLATE_DATA1_MASK,
 		  "Data 1 from template protocol", HFILL }
 	},
 	{ &hf_template_data2,
-		{ "Data 2", DISSECTOR_FILTER_NAME ".data.data2",
+		{ "Data 2", "template.data.data2",
 		  FT_UINT32, BASE_CUSTOM, CF_FUNC(&display_template_data2), TEMPLATE_DATA2_MASK,
 		  "Data 2 from template protocol", HFILL }
 	}
@@ -399,7 +399,8 @@ proto_register_subtree_array(ett, array_length(ett));
 
 The handoff function is used to create a dissector handle and to add the protocol dissector to the dissector table.
 
-The creation of the dissector handle is done with a call to `dissector_handle_t create_dissector_handle()`.
+The creation of the dissector handle is done with a call to
+`dissector_handle_t create_dissector_handle()` function.
 It takes the [dissect](#int-dissect) function and a [protocol handle](#protocol-handle).
 
 The dissector table is used to find a suitable dissector for the packet. Apart from "Custom tables", three
@@ -414,7 +415,7 @@ it means the dissector should be used. Functions used to add a dissector to thes
 in these tables is `void dissector_add_string()`.
 
 [The template protocol](#template-protocol) is registered in the "Integer tables", as it compares the `"tcp.port"`
-value to `1234` protocol number.
+value to `1234` port number.
 
 The definition of the `void proto_reg_handoff_template_protocol()` function:
 
@@ -424,7 +425,7 @@ void proto_reg_handoff_template_protocol (void)
 	static dissector_handle_t proto_handle;
 
 	proto_handle = create_dissector_handle(dissect, proto_template_protocol);
-	dissector_add_uint(HIGHER_LEVEL_PROTOCOL ".port", PORT_NO, proto_handle);
+	dissector_add_uint("tcp.port", 1234, proto_handle);
 }
 ```
 
