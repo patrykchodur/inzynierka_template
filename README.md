@@ -12,7 +12,7 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 - [Installing a dissector](#installing-a-dissector)
 - [Testing a dissector](#testing-a-dissector)
 - [Writing a dissector](#writing-a-dissector)
-	- [`CMakeLists.txt` file](#cmakeliststxt-file)
+	- [CMakeLists.txt file](#cmakeliststxt-file)
 	- [Plugin source file](#plugin-source-file)
 		- [Dissecting a packet](#dissecting-a-packet)
 		- [Global scope](#global-scope)
@@ -20,7 +20,7 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 			- [Protocol handle](#protocol-handle)
 			- [Header fields](#header-fields)
 			- [Subtrees](#subtrees)
-			- [Subfields arrays)(#subfields-arrays)
+			- [Subfields arrays](#subfields-arrays)
 
 ## Requirements
 
@@ -108,7 +108,7 @@ To write a new plugin a programmer must write at least two files:
 - `CMakeLists.txt`
 - plugin source file
 
-### `CMakeLists.txt` file
+### CMakeLists.txt file
 
 The `CMakeLists.txt` file for a new dissector can be based on the file provided with this repository.
 It is based on the one from the `gryphon` plugin. Most of it's content does not have
