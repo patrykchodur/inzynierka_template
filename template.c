@@ -42,7 +42,7 @@ static int * data_fields[] = {
 
 // CUSTOM DISPLAY FUNCTIONS (for bitfields)
 void display_template_data2(gchar *str, guint32 val) {
-	snprintf(str, ITEM_LABEL_LENGTH, "%" G_GUINT32_FORMAT "", val);
+	snprintf(str, ITEM_LABEL_LENGTH, "%" G_GUINT32_FORMAT "", val + 2);
 }
 
 // TREES HANDLES
