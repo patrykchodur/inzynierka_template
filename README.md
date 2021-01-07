@@ -22,6 +22,9 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 			- [Subtrees](#subtrees)
 			- [Subfields arrays](#subfields-arrays)
 			- [Bitmasks](#bitmasks)
+		- [void proto\_register\_template\_protocol() function](#void-proto_register_template_protocol-function)
+			- [Protocol registration](#protocol-registration)
+			- [Header field register info](#header-field-register-info)
 
 ## Requirements
 
@@ -247,7 +250,7 @@ bits of the number should be used. The two most common cases are:
 but only 30 bits are used).
 - the field is a subfield.
 
-The bitmask is then used in a [header field register info](#header-file-register-info) of this field.
+The bitmask is then used in a [header field register info](#header-field-register-info) of this field.
 
 In [the template protocol](#template-protocol) `data1` and `data2` fields need such extraction.
 Their bitmasks are defined using the `#define` directive
@@ -257,6 +260,57 @@ Their bitmasks are defined using the `#define` directive
 #define TEMPLATE_DATA2_MASK  0x000FFFFFull
 ```
 
+#### void proto\_register\_template\_protocol() function
+
+The `void proto_register_template_protocol()` function is used to register
+the [protocol](#protocol-registration), it's [fields](#header-field-register-info) and
+[subtrees](#subtrees-array).
+It contains the protocol fields definitions as well.
+
+##### Protocol registration
+
+Registration of the protocol is done with a call to `int proto_register_protocol()` function. The function
+takes 3 `NULL` terminated strings:
+- full name
+- short name
+- filter name
+
+The full name and short name are used in the Wireshark GUI. The filter name is used for filtering protocols
+and accessing protocol fields. Filter name should be lowercase.
+
+The return value of this function call should be assigned to the declared earlier
+[protocol handle](#protocol-handle).
+
+[The template protocol](#template-protocol) call to this function:
+
+```C
+proto_template_protocol = proto_register_protocol (
+		"Template Protocol",
+		"Template",
+		"template"
+	);
+```
+
+##### Header field register info
+
+The protocol fields are defined using an array of type `hf_register_info`. The array is than passed
+to `void proto_register_field_array()` and bound to the protocol.
+
+The `hf_register_info` struct consists of the [header field handle](#header-fields) pointer and `header_field_info`
+struct, which is defined as follows:
+
+```C
+struct header_field_info {
+    const char      *name;
+    const char      *abbrev;
+    enum ftenum     type;
+    int             display;
+    const void      *strings;
+    guint64         bitmask;
+    const char      *blurb;
+    .....
+};
+```
 
 
 
