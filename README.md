@@ -23,152 +23,162 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 			- [Subfields arrays](#subfields-arrays)
 			- [Bitmasks](#bitmasks)
 			- [Custom display functions](#custom-display-functions)
-		- [void proto\_register\_template\_protocol() function](#void-proto_register_template_protocol-function)
+		- [Register routine](#register-routine)
 			- [Protocol registration](#protocol-registration)
 			- [Header fields registration](#header-fields-registration)
 			- [Subtrees registration](#subtrees-registration)
-		- [void proto\_reg\_handoff\_template\_protocol() function](#void-proto_reg_handoff_template_protocol-function)
-		- [int dissect() function](#int-dissect-function)
+		- [Handoff routine](#handoff-routine)
+		- [Dissect function](#dissect-function)
 
 ## Requirements
 
-The programmer needs a Wireshark source tree. This can be obtained from
-[here](https://gitlab.com/wireshark/wireshark). The project was tested with `3.5.0` version of Wireshark.
+The Wireshark source code is required to build a dissector. It can be obtained from
+[here](https://gitlab.com/wireshark/wireshark). The project was tested with the `3.5.0`
+version of Wireshark.
 
-There are no other requirements for writing the plugin aside from the ones of the Wireshark itself.
-A decent text editor and `git` may be helpfull.
+There are no other requirements for writing the plugin, aside from the requirements of
+the Wireshark itself. A decent text editor and the `git` may be helpfull.
 
 ## Template files
 
-Two disssector files are provided:
-- `template.c` - which contains a simple dissector for template protocol. The file is designed to be
-a guide for writing own dissector.
-- `template_bare.c` - which contains a bare template that cannot be compiled. Designed as a starting point
-for writing a new dissector.
+Two disssector files are provided for this guide:
+- `template.c` - which contains a simple dissector for a template protocol. The file is
+  designed to be an expample of a dissector that can be compiled and tested.
+- `template_bare.c` - which contains a bare template that cannot be compiled. Designed as
+  a starting point for writing a new dissector.
 
-Additionaly there is a `CMakeLists.txt` file that can be used to compile template dissector
-or, with just a few modifications, used for own dissector.
+Additionaly, there is a `CMakeLists.txt` file that can be used to compile the template
+dissector, or with just a few modifications used for an own dissector.
 
 ### Template protocol
 
-The template protocol, for which the `template.c` dissector if written, contains 2 main fields:
+The template protocol, for which the `template.c` dissector is written, contains 2 main fields:
 - id field - 4 bytes
 - data field - 4 bytes that are split into 2 fields:
-	- data1 - bits from 20 to 31 (mask `0xFFF00000`)
-	- data2 - bits from 0 to 19 (mask `0x000FFFFF`)
+	- data1 - bits from 20 to 31 (mask `0xFFF00000`).
+	- data2 - bits from 0 to 19 (mask `0x000FFFFF`). When displayed, the value of `data2` field
+	  should be increased by 2.
 
 The packet is sent using the `TCP` protocol on port `1234`.
 
-This protocol will be used in [writing a dissector](#writing-a-dissector) chapter.
+This protocol will be used in the [writing a dissector](#writing-a-dissector) chapter.
 
 ## Compiling a dissector
 
-The dissector directory needs to be linked to `plugins/epan` directory of Wireshark source tree.
-Resulting path must than be put into `CMakeListsCustom.txt` file as a `CUSTOM_PLUGIN_SRC_DIR`.
-The `CMakeListsCustom.txt` file may not be present, just copy `CMakeListsCustom.txt.example` and delete
-sample plugin paths.
+The directory containing a dissectors source files needs to be linked to the `plugins/epan`
+directory of the Wireshark source tree. Resulting path must than be put into
+the `CMakeListsCustom.txt` file as a `CUSTOM_PLUGIN_SRC_DIR`. The `CMakeListsCustom.txt` file
+may not be present. If so, the `CMakeListsCustom.txt.example` file can be copied. Sample paths
+from the example file should be removed.
 
-To complile the plugin just run
+The plugin can be compiled by using the following command at the top of the Wireshark source
+tree.
+
+```sh
+mkdir build && cd build && cmake .. && cmake --build . --target <dissector name>
 ```
-mkdir build && cd build && cmake .. && cmake --build . --target *dissector name*
-```
-at the top of the Wireshark source tree.
-A dissector name is the name specified inside the `CMakeLists.txt` file of the dissector.
-For the template dissector the name is `template_dissector`.
-Alternatively, the whole Wireshark project (including the dissector) can be compiled with
-```
+
+A dissector name is the name specified inside the `CMakeLists.txt` file for the dissector.
+For the template dissector the name is `template_dissector`. Alternatively, the whole
+Wireshark project (including the dissector) can be compiled using:
+
+```sh
 mkdir build && cd build && cmake .. && cmake --build . --target all
 ```
 
-If the plugin is meant for a specific version of Wireshark `git checkout tags/wireshark-1.2.3`
-can be used inside the source of Wireshark that is used for compiling the plugin, with `1.2.3`
-replaced with the desired version.
+If the plugin is meant for a specific version of Wireshark, `git checkout tags/wireshark-1.2.3`
+can be used inside the Wireshark source copy that is used for compiling the plugin, with `1.2.3`
+replaced by the desired version.
 
 ## Installing a dissector
 
 If the dissector is compiled separately, the resulting dissector (ie. `*.so` file) can be copied
-into a propper `epan` directory of installed Wireshark. Otherwise the plugin is already installed.
+into a propper `epan` directory of an installed Wireshark. Otherwise the plugin is already
+installed.
 
-The list of installed plugins, as well as the absolute path of the `epan` directory, can be found
-at `Help->About Wireshark->Plugins` tab.
+The list of installed plugins, as well as the absolute path of the `epan` directory, can be
+found at `Help->About Wireshark->Plugins` tab.
 
 ## Testing a dissector
 
-The easiest way to test a dissector is to use `.pcap` files with captured packets.
-
-If packets are not available, the user can generate a packet with the `hexedit` tool or some text editor.
-Beware: most text editors add an extra new line at the end of the file.
+The easiest way to test a dissector is to use `.pcap` files containing captured packets.
+If packets are not available, the user can generate a packet with the `hexedit` tool, or some
+text editor. **Beware: most text editors add an extra new line at the end of the file.**
 
 The packet can than be sent using the `netcat` tool:
 - `netcat -l -p 1234` to listen on port `1234`
-- `cat testpacket | netcat -c localhost 1234` to send the content of testpacket file to `localhost` using `1234`
-port. `-c` option stands for close at the `EOF`
+- `cat <test_packet> | netcat -c localhost 1234` to send the content of testpacket file to
+  `localhost` using `1234` port. `-c` option stands for "Close the connection at the `EOF`".
 
-To use `UDP` the `-u` option must be added. `-v` for verbose output may be helpfull as well.
+To use `UDP`, the `-u` option must be added. `-v` for verbose output may be helpfull as well.
 
 ## Writing a dissector
 
 The `template.c`, `template_bare.c` and `CMakeLists.txt` files are provided to help writing own
-dissectors. The dissector written in `template.c` is used to discuss the structure and the content
-of a Wireshark dissector plugin.
+dissectors. The dissector written in `template.c` is used to discuss the structure, and
+the content, of a Wireshark dissector plugin.
 
-To write a new plugin a programmer must write at least two files:
-- `CMakeLists.txt`
-- plugin source file
+To write a new plugin, a programmer must write at least two files:
+- [CMakeLists.txt](#cmakeliststxt-file)
+- a [plugin source file](#plugin-source-file)
 
 ### CMakeLists.txt file
 
-The `CMakeLists.txt` file for a new dissector can be based on the file provided with this repository.
-It is based on the one from the `gryphon` plugin. Most of it's content does not have
-to be changed, except for these lines:
+The `CMakeLists.txt` file for a new dissector can be based on the file provided with this
+repository. It is based on the one from the `gryphon` plugin. Most of it's content does not
+have to be changed, except for these lines:
 - `set(PLUGIN_NAME template_dissector)` - specifies the dissector name.
-- `set_module_info(${PLUGIN_NAME} 0 0 1 0)` - sets the version of the dissector. The numbers are:
+- `set_module_info(${PLUGIN_NAME} 0 0 1 0)` - sets the version of the dissector.
+  The numbers are:
 	- version major
 	- version minor
 	- version micro
 	- version extra
-- `set(DISSECTOR_SRC template.c)` - the list of implementation files of the project (no header files)
+- `set(DISSECTOR_SRC template.c)` - the list of implementation files of the project
+  (no header files)
 
-This file will be included during build process by the `cmake` tool. The folder containing `CMakeLists.txt`
-must be included in `CMakeListsCustom.txt` (see [Compiling a dissector](#compiling-a-dissector)).
+This file will be included during build process by the `cmake` tool. The directory containing
+a `CMakeLists.txt` must be included in `CMakeListsCustom.txt`
+(see [compiling a dissector](#compiling-a-dissector)).
 
 ### Plugin source file
 
-Plugin can be written in just one `.c` file. It's structure will be discussed in this section.
-`template.c` dissector is used as a reference. All `template` occurences should be replaced with a desired name.
+A plugin can be written in just one `.c` file. Its structure will be discussed in this section.
+`template.c` dissector is used as a reference. All "template" occurences should be replaced
+with a desired name.
 
-The purpose of used `static` specifiers is:
-- in global scope - to hide names from other source files
-- in functions - to preserve a variable from being deleted after leaving the function, as Wireshark is not
-making a copy of it.
+The purpose of all used `static` specifiers is:
+- in a global scope - to hide the names from other source files
+- in functions - to preserve a variable from being deleted after leaving the function,
+  as the Wireshark is not making a copy of it.
 
 #### Dissecting a packet
 
-The process of dissecting a packet is done by building the packet tree. The tree nodes are packet fields.
-If a packet field consists of other fields, they are it's child nodes. A fields with it's child nodes is called
-a subtree. The actual process of building the tree is discussed at later.
+The process of dissecting a packet is done by building the packet tree. The tree nodes are
+packet fields. If a packet field consists of other fields, they are it's child nodes.
+A fields with it's child nodes is called a subtree. The actual process of building the tree
+is discussed [later](#dissect-function).
 
 Every dissector needs at least 3 functions:
-- `int dissect()` - for the packed dissection
-- `void proto_register_template_protocol()` - used to register the dissector, it's fields and trees.
-- `void proto_reg_handoff_template_protocol()` - used to "handoff" the protocol (ie. tell the Wireshark
-which packets should be sent to the dissector).
+- [register routine](#register-routine) - used to register the dissector, its fields
+  and subtrees.
+- [handoff routine](#handoff-routine) - used to "handoff" the protocol (ie. tell the Wireshark
+  which packets should be sent to the dissector).
+- [dissect function](#dissect-function) - the funtion that dissect the packet.
 
-These functions, as well as a global scope, will be discussed in separate subsections.
-
-Names of the `register` and `handoff` routines must have `proto_register_*` and `proto_reg_handoff_` form.
-This is because the code to call these functions is generated by the Wireshark
-during the compile time. All other declared names are arbitrary.
+These functions, as well as a [global scope](#global-scope), will be discussed in separate
+subsections.
 
 #### Global scope
 
-The global scope for a dissector, apart from mentioned earlier functions, must contain at least the following:
+The global scope for a dissector, apart from mentioned earlier functions, must contain at
+least the following:
 - [include directives](#include-directives)
 - [protocol handle declaration](#protocol-handle)
 - [header fields declarations](#header-fields)
 - [subtrees declarations](#subtrees)
 
-Depending of the protocol nature it may be required to declare:
+Depending of the protocol nature, it may be required to declare:
 - [subfields arrays](#subfields-arrays)
 - [bitmasks](#bitmasks)
 - [custom display functions](#custom-display-functions)
@@ -176,15 +186,15 @@ Depending of the protocol nature it may be required to declare:
 ##### Include directives
 
 The source code of a new dissector must include at least these files:
-- `"config.h"` - generated during the compilation of a plugin
-- `<epan/packet.h>` - header file for `epan` dissectors library
+- `"config.h"` - generated during the compilation of a plugin.
+- `<epan/packet.h>` - header file for the `epan` dissectors library.
 
-Using custom libraries may require modifying the `CMakeLists.txt` file, but the C Standard Library
-should be accessible without any problems.
+Using custom libraries may require modifying the `CMakeLists.txt` file, but the *C Standard
+Library* should be accessible without any problems.
 
 ##### Protocol handle
-The protocol handle is used for registration of a new protocol.
-It is the first item to be added to the protocol tree (discussed later).
+The protocol handle is used for the registration of a new protocol. It is the first item
+to be added to the protocol tree (discussed [later](#dissect-function)).
 
 ```C
 static int proto_template_protocol = -1;
@@ -192,15 +202,17 @@ static int proto_template_protocol = -1;
 
 ##### Header fields
 
-The header fields are used to describe the protocol fields. Their handles are declared in the global scope.
-A separate header field must be used for every protocol field, even for fields that consist of other fields.
-[The template protocol](#template-protocol) contains 4 fields:
+The header fields are used to describe the protocols fields. Their handles are declared in
+the global scope. A separate header field must be declared for every protocol field, even
+for fields that consist of other fields.
+
+The [template protocol](#template-protocol) contains 4 fields:
 - `id` field
 - `data` field
 - `data1` field
 - `data2` field
 
-The declaration of header field handles for this protocol is as follows:
+The declaration of all header field handles:
 
 ```C
 static int hf_template_id = -1;
@@ -211,18 +223,18 @@ static int hf_template_data2 = -1;
 
 ##### Subtrees
 
-Subtree is a protocol element with it's child nodes and their subrees.
-To simplify, a subtree is every element that can be expanded in GUI.
-Every subtree of the protocol has to be registered. This applies to the protocol
-tree itself as it is considered to be a subtree for the lower level protocol (`TCP` for 
-[the template protocol](#template-protocol)).
+Subtree is a protocol element along with it's child elements and their subtrees.
+To simplify, a subtree is every element that can be expanded in GUI. Every subtree of
+the protocol has to be registered. This applies to the whole protocol tree as well,
+as it is considered to be a subtree for the lower level protocol (`TCP` for 
+the [template protocol](#template-protocol)).
 
-[The template protocol](#template-protocol) has two subtrees:
+The [template protocol](#template-protocol) has two subtrees:
 - the protocol itself
-- data section
+- the data section
 
 Subtree handles are declared as values of `gint` type. The declaration of
-[the template protocol](#template-protocol) subtrees is:
+the [template protocol](#template-protocol) subtrees:
 
 ```C
 static gint ett_template = -1;
@@ -231,12 +243,12 @@ static gint ett_template_data = -1;
 
 ##### Subfields arrays
 
-If a protocol field consists of other fields, it's elements must be specified in a `NULL`
+If a protocol field consists of other fields, its elements must be specified in a `NULL`
 terminated subfields array. The array holds [header fields](#header-fields) pointers
 and is used as a parameter for `proto_tree_add_bitmask*` functions family.
 
-[The template protocol's](#template-protocol) `data` segment is an example of such field, as
-it contains `data1` and `data2`. Therefore it's array is declared as follows:
+The [template protocol's](#template-protocol) `data` segment is an example of such field, as
+it contains `data1` and `data2`. Therefore, its array is declared as follows:
 
 ```C
 static int * data_fields[] = {
@@ -254,10 +266,13 @@ bits of the number should be used. The two most common cases are:
 but only 30 bits are used).
 - the field is a subfield.
 
-The bitmask is then used in a [header field register info](#header-field-register-info) of this field.
+The result of the extraction is then right-shifted according to a position of the first true
+bit of the mask.
 
-In [the template protocol](#template-protocol) `data1` and `data2` fields need such extraction.
-Their bitmasks are defined using the `#define` directive
+The bitmask is used in a [header field register info](#header-fields-registration) of the field.
+
+In the [template protocol](#template-protocol), `data1` and `data2` fields need such extraction.
+Their bitmasks are defined using the `#define` directive:
 
 ```C
 #define TEMPLATE_DATA1_MASK  0xFFF00000ull
@@ -266,29 +281,50 @@ Their bitmasks are defined using the `#define` directive
 
 ##### Custom display functions
 
+Custom display functions are used if built-in options are not sufficient. An exapmle of such
+situation may be the need to add a constant value to the field. A custom display function
+takes `gchar` pointer and the value. The value is provided as a `guint32` (for fields using
+32 bits and less) or `guint64` (more than 32 bits) value.
 
-#### void proto\_register\_template\_protocol() function
+The custom display function is written for the [template protocols](#template-protocol)
+field `data2`, as it's value should be increased by 2.
 
-The `void proto_register_template_protocol()` function is used to register
-the [protocol](#protocol-registration), it's [fields](#header-fields-registration) and
-[subtrees](#subtrees-registration).
+```C
+void display_template_data2(gchar *str, guint32 val) {
+	snprintf(str, ITEM_LABEL_LENGTH, "%" G_GUINT32_FORMAT, val + 2);
+}
+```
+
+#### Register routine
+
+The register routine is used for:
+- the [protocol registration](#protocol-registration)
+- [header fields registration](#header-fields-registration)
+- [subtrees registration](#subtrees-registration).
+
 It contains the protocol fields definitions as well.
+
+The register function name should be prefixed with `proto_register_`. The reason is that during
+the compilation of a dissector a special function to call the register routine, as well as
+the handoff routine, is generated.
+
+The function should not take, nor return, any arguments.
 
 ##### Protocol registration
 
-Registration of the protocol is done with a call to `int proto_register_protocol()` function. The function
-takes 3 `NULL` terminated strings:
-- full name
-- short name
-- filter name
+The registration of a protocol is done with a call to `int proto_register_protocol()` function.
+The function takes 3 `NULL` terminated strings:
+- a full name
+- a short name
+- a filter name
 
-The full name and short name are used in the Wireshark GUI. The filter name is used for filtering protocols
-and accessing protocol fields. Filter name should be lowercase.
+The full name and the short name are used in the Wireshark GUI. The filter name is used
+for filtering protocols and accessing protocol fields. The filter name should be lowercase.
 
 The return value of this function call should be assigned to the declared earlier
 [protocol handle](#protocol-handle).
 
-[The template protocol](#template-protocol) call to this function:
+The [template protocol](#template-protocol) call to this function:
 
 ```C
 proto_template_protocol = proto_register_protocol (
@@ -300,11 +336,11 @@ proto_template_protocol = proto_register_protocol (
 
 ##### Header fields registration
 
-The protocol fields are defined using an array of type `hf_register_info`. The array is than bound
-to the protocol by `void proto_register_field_array()` function.
+The protocol fields are defined using an array of the `hf_register_info` type. The array is than
+bound to the protocol by `void proto_register_field_array()` function.
 
-The `hf_register_info` struct consists of the [header field handle](#header-fields) pointer and `header_field_info`
-struct, which is defined as follows:
+The `hf_register_info` struct consists of the [header field handle](#header-fields) pointer
+and a `header_field_info` struct, which is defined as follows:
 
 ```C
 struct header_field_info {
@@ -319,38 +355,45 @@ struct header_field_info {
 };
 ```
 
-Full description of its fields is provided in the `README.dissector` file from `doc` directory in Wireshark
-source code. A brief description of each parameter:
+The full description of its fields is provided in the `README.dissector` file from the `doc`
+directory in the Wireshark source code. A brief description of each parameter:
 - `name` variable should be filled with a short name of the protocol field.
-- `abbrev` is used to provide a filter name for the protocol field. The filter name should be a dot separated
-path of the protocol field. Filter names for [the template protocol](#template-protocol) are:
+- `abbrev` is used to provide a filter name for the protocol field. The filter name should be
+  a dot separated path of the protocol field. Filter names for
+  the [template protocol](#template-protocol) are:
 	- `template.id`
 	- `template.data`
 	- `template.data.data1`
 	- `template.data.data2`
-- `type` tells the Wireshark what to do with the field. The types are prefixed with `FT_`. Some examples are:
+- `type` tells the Wireshark what to do with a field. The types are prefixed with `FT_`.
+  Some examples are:
 	- `FT_UINT32` - 32 bits unsigned int
 	- `FT_INT24` - 24 bits signed int
 	- `FT_FLOAT` - 32 bits float
 	- `FT_STRINGZ` - `NULL` (Zero) terminated string
-- `display` is used to specify the way of displaying a field. Available options depend on the `type`,
-for example integer types can specify base for their notation (e.g. `BASE_DEC`), but two options are special:
-	- `BASE_NONE` is used for fields that have only one way of displaying
-	- `BASE_CUSTOM` is used if a custom display function is provided
-- `strings` field is overloaded and it's meaning depend on the `display` parameter. If no content is needed `NULL`
-should be used. The field is usually used to provide:
-	- `value_string` array, which is used to translate integer value to a string that is used to display a field.
-It is helpfull for enum type fields, where specific codes have some meanings.
-	- [custom display function](#custom-display-functions) that takes `gchar` pointer and the
-field value. The function pointer is passed using a `CF_FUNC()` macro.
-- [bitmask](#bitmasks) is used to provide a field's bitmask. If none is needed, `0` constant should be used.
-- `blurb` is a field description
+- `display` is used to specify the way of displaying a field. Available options depend on
+  the `type`. For example, for the integer types the base of their notation can be specified
+  (e.g. `BASE_DEC`). Two options are special:
+	- `BASE_NONE` - used for fields that have only one way of displaying.
+	- `BASE_CUSTOM` - used if a custom display function is provided.
+- `strings` field is overloaded and its meaning depend on the `display` parameter.
+  If no content is needed, the `NULL` value should be used. The field is usually used to
+  provide:
+	- a `value_string` array, which is used to translate integer values to strings, which are
+	  than used to display a field. It is usually helpfull for enum type fields, where
+	  specific codes have some meanings.
+	- a [custom display function](#custom-display-functions) that takes a `gchar` pointer and
+	  the fields value. The function pointer is passed using a `CF_FUNC()` macro.
+- [bitmask](#bitmasks) is used to provide a fields bitmask. If none is needed, the `0`
+  constant value should be used.
+- `blurb` is a brief field description
 - the rest of the struct are internal fields. They should be filled using `H_FILL` macro.
 
-Filled `hf_register_info` array is be passed to the `void proto_register_field_array()` function,
-which takes [the protocol handle](#protocol-handle), the just created array and it's length.
+Filled `hf_register_info` array is passed to the `void proto_register_field_array()` function,
+which takes the [protocol handle](#protocol-handle), the just created array and it's length.
 
-The `hf_register_info` array and it's registration for [the template protocol](#template-protocol):
+The `hf_register_info` array and it's registration for
+the [template protocol](#template-protocol):
 
 ```C
 static hf_register_info hf[] = {
@@ -384,8 +427,8 @@ proto_register_field_array(proto_template_protocol, hf, array_length(hf));
 
 ##### Subtrees registration
 
-The [subtrees](#subtrees) are registred using the `void proto_register_subtree_array()` function,
-which takes an subtree pointer array and it's length.
+The [subtrees](#subtrees) are registred using the `void proto_register_subtree_array()`
+function, which takes an subtree pointer array and its length.
 
 ```C
 static gint *ett[] = {
@@ -396,27 +439,34 @@ static gint *ett[] = {
 proto_register_subtree_array(ett, array_length(ett));
 ```
 
-#### void proto\_reg\_handoff\_template\_protocol() function
+#### Handoff routine
 
-The handoff function is used to create a dissector handle and to add the protocol dissector to the dissector table.
+The handoff routine is used to create a dissector handle and to add the protocols dissector
+to the dissectors tables.
+
+The name of this function should begin with `proto_reg_handoff_` for the same reason as
+the [register routine](#register-routine).
 
 The creation of the dissector handle is done with a call to
-`dissector_handle_t create_dissector_handle()` function.
-It takes the [dissect](#int-dissect) function and a [protocol handle](#protocol-handle).
+the `dissector_handle_t create_dissector_handle()` function.
+It takes the [dissect function](#dissect-function) and a [protocol handle](#protocol-handle)
+as the arguments.
 
-The dissector table is used to find a suitable dissector for the packet. Apart from "Custom tables", three
-table types are used:
-- "Heuristic tables" - used for heuristic dissectors. The packet is passed to the dissector, which decide whether
-to dissect the packet or not. If the packet is rejected, the next dissector in table is used.
-- "Integer tables" - a lower level dissector field and it's expected value is provided. If these values match,
-it means the dissector should be used. Functions used to add a dissector to these tables are:
+The dissector tables are used to find a suitable dissector for the packet. Apart from
+"Custom tables", three table types are used:
+- "Heuristic tables" - used for heuristic dissectors. The packet is passed to a dissector,
+  which decides whether to dissect the packet or not. If the packet is rejected, the next
+  dissector in the table is used.
+- "Integer tables" - a lower level dissector field and its expected value are provided.
+  If these values match, it means a dissector should be used. Functions used to add
+  a dissector to these tables are:
 	- `void dissector_add_uint()`
 	- `void dissector_add_uint_range()`
-- "String tables" - same as "Integer tables" but strings are compared. The function used to register a dissector
-in these tables is `void dissector_add_string()`.
+- "String tables" - same as "Integer tables" but strings are compared. The function used
+  to register a dissector in these tables is `void dissector_add_string()`.
 
-[The template protocol](#template-protocol) is registered in the "Integer tables", as it compares the `"tcp.port"`
-value to `1234` port number.
+The [template protocol](#template-protocol) is registered in the "Integer tables", as it
+compares the `"tcp.port"` value to the `1234` port number.
 
 The definition of the `void proto_reg_handoff_template_protocol()` function:
 
@@ -430,6 +480,125 @@ void proto_reg_handoff_template_protocol (void)
 }
 ```
 
-#### int dissect() function
+#### Dissect function
 
-The `int dissect()` function is used to build a protocol tree
+The dissect function is used to build a protocol tree and to set the packet info.
+It takes 4 arguments and returns an `int` indicating a number of consumed bytes.
+The arguments are:
+- a packet buffer - passed as a pointer to an object of type `tvbuff_t`. Its structure is
+  not introduced to the programmer. Any operations should be performed using provided by
+  the Wireshark functions. Basic operations, like reading from the buffer or getting its
+  length, are done using `tvb_*` functions.
+- a packet info - a pointer to a `packet_info`. The pointer is used with `col_` functions to
+  set columns in the Wiresharks GUI, particurarly *Protocol* and *Info* columns.
+- a protocol tree - a pointer to a `proto_tree` object. It is a pointer to a lower level
+  dissector tree that will be used as a root for the to-be-created protocol tree.
+- a data void pointer - for advanced dissectors. Not used here, thus the *unused* attribute
+  will follow its declaration.
+
+```C
+static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_);
+```
+
+Usually a dissect function can be split into 3 parts:
+- [basic checks](#basic-checks)
+- [setting packet info](#setting-packet-info)
+- [building a packet tree](#building-a-packet-tree)
+
+##### Basic checks
+
+If the packets length is constant, the first thing to do at the beginning of a dissector,
+is to check the passed packets length. If the length is not appropriate, there is no point
+in dissecting the packet. The check can be done using a `guint tvb_captured_length()` function.
+
+Depending on the protocol, other checks can be performed. For example, if the protocol has
+4 special codes sent on a byte, a value not matching any code may be a sign of an inappropriate
+packet. The code value could be retrived using the `guint8 tvb_get_guint8()` function.
+
+If the checks fail, a value `0` should be returned, indicating no bytes were consumed.
+
+```C
+if (tvb_captured_length(tvb) == 8)
+	return 0;
+```
+
+##### Setting packet info
+
+The next thing to do, in a dissect function, is to set columns content. There are 2 columns
+to fill: *Protocol* and *Info*.
+
+Columns are manipulated using `col_` functions. To clear the column, a call to
+the `void col_clear()` function should be used. Only *Info* column should be cleared -
+the *Protocol* column does not require it. There are 2 functions used to fill a column
+with a string. The choise should depent on the lifetime of a string:
+- `void col_set_str()` - for static strings.
+- `void col_add_str()` - for automatic (located on the stack) strings. The string is copied.
+
+For convenience, the `void col_add_fstr()` function is provided, taking a format string as
+an argument.
+
+The *Protocol* column should contain a short name of the protocol.
+It's usually a static string, saved in read only memory, that does not change.
+
+The *Info* on the other hand, is used to distinguish the packet from other packets,
+so it should use some of the packets data. `tvb_get_*` functions can be used to retrive it.
+
+```C
+guint32 template_id = tvb_get_guint32(tvb, 0, ENC_LITTLE_ENDIAN);
+
+col_set_str(pinfo->cinfo, COL_PROTOCOL, "Template");
+col_clear(pinfo->cinfo, COL_INFO);
+col_add_fstr(pinfo->cinfo, COL_INFO, "id: %" G_GUINT32_FORMAT, template_id);
+```
+
+##### Building a packet tree
+
+To add an item to the packet tree, the `proto_item* proto_tree_add_item()` function is
+usually used. It takes the tree, to which an item is added, an item handle (usually
+a [header field](#header-fields) or a [protocol](#protocol-handle) handle), a buffer pointer,
+an offset at which the item is located in the buffer, a length of the item in bytes,
+and its encoding (usually either `ENC_LITTLE_ENDIAN`, `ENC_BIG_ENDIAN` or `ENC_NA` - Not
+Available).
+
+```C
+proto_tree_add_item(top_tree, hf_template_id, tvb, offset, 4, ENC_LITTLE_ENDIAN);
+```
+
+It is a good idea to keep the offset in a variable of type `guint` and increase it by the size
+of a just added field. That way, the programmer does not need to keep track of the offset.
+
+```C
+offset += 4;
+```
+
+To add a protocol field that has subfields, the `proto_item* proto_tree_add_bitmask()` function
+is used. 2 additional arguments need to be provided between the [header field](#header-field)
+and the encoding: an [ett handle](#subtrees) and a [subfield array](#subfield-arrays).
+The subtree is implicitly created.
+
+```C
+proto_tree_add_bitmask(top_tree, tvb, offset, hf_template_data, ett_template_data, data_fields, ENC_LITTLE_ENDIAN);
+offset += 4;
+```
+
+To explicilty add a subtree, an item returned from previous functions is used together with
+the [ett handle](#subtrees) of the new tree. The function to call is
+`proto_tree* proto_item_add_subtree()`.
+
+A tree for the whole protocol needs to be added that way. A tree item representing the
+protocol itself is added to the lower protocol tree, and than a subtree is created. When
+adding a protocol, a special length value `-1` can be used.
+
+```C
+proto_item *top_tree_item = proto_tree_add_item(tree, proto_template_protocol, tvb, 0, -1, ENC_NA);
+proto_tree *top_tree = proto_item_add_subtree(top_tree_item, ett_template);
+```
+
+Of course there are other, more complex functions designed to add objects to a tree.
+An example of such function may be the `proto_item* proto_tree_add_string()` function.
+They are described in the *README.dissector* file in the *doc* directory of the Wireshark
+source tree.
+
+At the end of the process, the offset should be returned from the function, indicating number
+of consumed bytes. It should be equal to the total length of the packet.
+

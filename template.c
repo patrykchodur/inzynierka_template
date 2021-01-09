@@ -6,7 +6,7 @@
 // Template Protocol:
 // id (4 bytes) data (4 bytes)
 //     data:
-//     data1 (2 bytes) data2 (2bytes)
+//     data1 (12 bits) data2 (20 bits)
 
 
 // PROTOCOL HANDLE
@@ -34,7 +34,7 @@ static int * data_fields[] = {
 
 // CUSTOM DISPLAY FUNCTIONS (for bitfields)
 void display_template_data2(gchar *str, guint32 val) {
-	snprintf(str, ITEM_LABEL_LENGTH, "%" G_GUINT32_FORMAT "", val + 2);
+	snprintf(str, ITEM_LABEL_LENGTH, "%" G_GUINT32_FORMAT, val + 2);
 }
 
 // TREES HANDLES
@@ -43,16 +43,11 @@ static gint ett_template_data = -1;
 
 static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_)
 {
-	proto_item *top_tree_item;
-	proto_tree *top_tree;
-
-	guint offset = 0;
-	guint32 template_id;
-
-	assert(tvb_captured_length(tvb) == 8);
+	if (tvb_captured_length(tvb) == 8)
+		return 0;
 
 	// getting the basic info that will be used while unpacking the data
-	template_id = tvb_get_guint32(tvb, 0, ENC_LITTLE_ENDIAN);
+	guint32 template_id = tvb_get_guint32(tvb, 0, ENC_LITTLE_ENDIAN);
 
 	// Preparing column info (upper window)
 	col_set_str(pinfo->cinfo, COL_PROTOCOL, "Template");
@@ -60,11 +55,13 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 	col_add_fstr(pinfo->cinfo, COL_INFO, "id: %" G_GUINT32_FORMAT, template_id);
 
 	// Registering top tree
-	top_tree_item = proto_tree_add_item(tree, proto_template_protocol, tvb, 0, -1, ENC_NA);
-	top_tree = proto_item_add_subtree(top_tree_item, ett_template);
+	proto_item *top_tree_item = proto_tree_add_item(tree, proto_template_protocol, tvb, 0, -1, ENC_NA);
+	proto_tree *top_tree = proto_item_add_subtree(top_tree_item, ett_template);
 
 
 	/* CONSUMING THE DATA */
+
+	guint offset = 0;
 
 	// id
 	proto_tree_add_item(
