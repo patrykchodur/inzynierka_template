@@ -518,7 +518,7 @@ packet. The code value could be retrived using the `guint8 tvb_get_guint8()` fun
 If the checks fail, a value `0` should be returned, indicating no bytes were consumed.
 
 ```C
-if (tvb_captured_length(tvb) == 8)
+if (tvb_captured_length(tvb) != 8)
 	return 0;
 ```
 

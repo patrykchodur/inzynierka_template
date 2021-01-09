@@ -43,7 +43,7 @@ static gint ett_template_data = -1;
 
 static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_)
 {
-	if (tvb_captured_length(tvb) == 8)
+	if (tvb_captured_length(tvb) != 8)
 		return 0;
 
 	// getting the basic info that will be used while unpacking the data
