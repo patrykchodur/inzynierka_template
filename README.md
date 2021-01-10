@@ -29,6 +29,7 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 			- [Subtrees registration](#subtrees-registration)
 		- [Handoff routine](#handoff-routine)
 		- [Dissect function](#dissect-function)
+- [Further reading](#further-reading)
 
 ## Requirements
 
@@ -601,4 +602,11 @@ source tree.
 
 At the end of the process, the offset should be returned from the function, indicating number
 of consumed bytes. It should be equal to the total length of the packet.
+
+## Further reading
+
+To expand the knowledge about writing dissectors, 3 files from the Wiresharks *doc* directory can be used:
+- *README.dissector* - a deeper description of writing dissectors.
+- *README.heuristic* - a tutorial about writing heuristic dissectors.
+- *README.plugins* - a tutorial about writing a plugin.
 
