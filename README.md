@@ -108,10 +108,14 @@ text editor. **Beware: most text editors add an extra new line at the end of the
 
 The packet can than be sent using the `netcat` tool:
 - `netcat -l -p 1234` to listen on port `1234`
-- `cat <test_packet> | netcat -c localhost 1234` to send the content of testpacket file to
+- `cat <test_packet> | netcat -c localhost 1234` to send the content of a *testpacket* file to
   `localhost` using `1234` port. `-c` option stands for "Close the connection at the `EOF`".
 
 To use `UDP`, the `-u` option must be added. `-v` for verbose output may be helpfull as well.
+
+The template dissector can be tested running `netcat -l -p 1234` in one terminal window,
+and `echo "testing" | netcat -c localhost 1234` in another terminal window. The Wireshark
+must be running and monitoring the *loopback* interface.
 
 ## Writing a dissector
 
