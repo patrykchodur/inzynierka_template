@@ -10,7 +10,7 @@
 
 
 // PROTOCOL HANDLE
-static int proto_template_protocol = -1;
+static int proto_template = -1;
 
 
 // PROTOCOL FIELDS HANDLES
@@ -41,7 +41,7 @@ void display_template_data2(gchar *str, guint32 val) {
 static gint ett_template = -1;
 static gint ett_template_data = -1;
 
-static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_)
+static int dissect_template(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_)
 {
 	if (tvb_captured_length(tvb) != 8)
 		return 0;
@@ -55,7 +55,7 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 	col_add_fstr(pinfo->cinfo, COL_INFO, "id: %" G_GUINT32_FORMAT, template_id);
 
 	// Registering top tree
-	proto_item *top_tree_item = proto_tree_add_item(tree, proto_template_protocol, tvb, 0, -1, ENC_NA);
+	proto_item *top_tree_item = proto_tree_add_item(tree, proto_template, tvb, 0, -1, ENC_NA);
 	proto_tree *top_tree = proto_item_add_subtree(top_tree_item, ett_template);
 
 
@@ -91,31 +91,31 @@ static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *da
 	return tvb_captured_length(tvb);
 }
 
-void proto_register_template_protocol (void)
+void proto_register_template (void)
 {
 	static hf_register_info hf[] = {
 		/* TEMPLATE FIELDS */
 		{ &hf_template_id, 
 			{ "Template id", "template.id", 
 			  FT_UINT32, BASE_DEC, NULL, 0x0,
-			  "Some id for template protocol", HFILL }
+			  "Some id for the template protocol", HFILL }
 		},
 		{ &hf_template_data,
 			{ "Data", "template.data",
 			  FT_UINT32, BASE_HEX, NULL, 0x0,
-			  "Data section of template protocol", HFILL }
+			  "Data section of the template protocol", HFILL }
 		},
 
 		/* DATA_FIELDS */
 		{ &hf_template_data1,
 			{ "Data 1", "template.data.data1",
 			  FT_UINT32, BASE_HEX, NULL, TEMPLATE_DATA1_MASK,
-			  "Data 1 from template protocol", HFILL }
+			  "Data 1 from the template protocol", HFILL }
 		},
 		{ &hf_template_data2,
 			{ "Data 2", "template.data.data2",
 			  FT_UINT32, BASE_CUSTOM, CF_FUNC(&display_template_data2), TEMPLATE_DATA2_MASK,
-			  "Data 2 from template protocol", HFILL }
+			  "Data 2 from the template protocol", HFILL }
 		},
 	};
 
@@ -126,20 +126,20 @@ void proto_register_template_protocol (void)
 	};
 
 	// register protocol
-	proto_template_protocol = proto_register_protocol (
+	proto_template = proto_register_protocol (
 			"Template Protocol",
 			"Template",
 			 "template"
 		);
 
-	proto_register_field_array(proto_template_protocol, hf, array_length(hf));
+	proto_register_field_array(proto_template, hf, array_length(hf));
 	proto_register_subtree_array(ett, array_length(ett));
 }
 
-void proto_reg_handoff_template_protocol (void)
+void proto_reg_handoff_template (void)
 {
 	static dissector_handle_t proto_handle;
 
-	proto_handle = create_dissector_handle(dissect, proto_template_protocol);
+	proto_handle = create_dissector_handle(dissect_template, proto_template);
 	dissector_add_uint("tcp.port", 1234, proto_handle);
 }

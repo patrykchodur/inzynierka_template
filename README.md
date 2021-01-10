@@ -42,9 +42,9 @@ the Wireshark itself. A decent text editor and the `git` may be helpfull.
 ## Template files
 
 Two disssector files are provided for this guide:
-- `template.c` - which contains a simple dissector for a template protocol. The file is
+- `packet-template.c` - which contains a simple dissector for a template protocol. The file is
   designed to be an expample of a dissector that can be compiled and tested.
-- `template_bare.c` - which contains a bare template that cannot be compiled. Designed as
+- `packet-template-bare.c` - which contains a bare template that cannot be compiled. Designed as
   a starting point for writing a new dissector.
 
 Additionaly, there is a `CMakeLists.txt` file that can be used to compile the template
@@ -52,7 +52,7 @@ dissector, or with just a few modifications used for an own dissector.
 
 ### Template protocol
 
-The template protocol, for which the `template.c` dissector is written, contains 2 main fields:
+The template protocol, for which the `packet-template.c` dissector is written, contains 2 main fields:
 - id field - 4 bytes
 - data field - 4 bytes that are split into 2 fields:
 	- data1 - bits from 20 to 31 (mask `0xFFF00000`).
@@ -114,9 +114,9 @@ To use `UDP`, the `-u` option must be added. `-v` for verbose output may be help
 
 ## Writing a dissector
 
-The `template.c`, `template_bare.c` and `CMakeLists.txt` files are provided to help writing own
-dissectors. The dissector written in `template.c` is used to discuss the structure, and
-the content, of a Wireshark dissector plugin.
+The `packet-template.c`, `packet-template-bare.c` and `CMakeLists.txt` files are provided
+to help writing own dissectors. The dissector written in `packet-template.c` is used to
+discuss the structure, and the content, of a Wireshark dissector plugin.
 
 To write a new plugin, a programmer must write at least two files:
 - [CMakeLists.txt](#cmakeliststxt-file)
@@ -134,7 +134,7 @@ have to be changed, except for these lines:
 	- version minor
 	- version micro
 	- version extra
-- `set(DISSECTOR_SRC template.c)` - the list of implementation files of the project
+- `set(DISSECTOR_SRC packet-template.c)` - the list of implementation files of the project
   (no header files)
 
 This file will be included during build process by the `cmake` tool. The directory containing
@@ -144,7 +144,7 @@ a `CMakeLists.txt` must be included in `CMakeListsCustom.txt`
 ### Plugin source file
 
 A plugin can be written in just one `.c` file. Its structure will be discussed in this section.
-`template.c` dissector is used as a reference. All "template" occurences should be replaced
+`packet-template.c` dissector is used as a reference. All "template" occurences should be replaced
 with a desired name.
 
 The purpose of all used `static` specifiers is:
@@ -197,7 +197,7 @@ The protocol handle is used for the registration of a new protocol. It is the fi
 to be added to the protocol tree (discussed [later](#dissect-function)).
 
 ```C
-static int proto_template_protocol = -1;
+static int proto_template = -1;
 ```
 
 ##### Header fields
@@ -327,7 +327,7 @@ The return value of this function call should be assigned to the declared earlie
 The [template protocol](#template-protocol) call to this function:
 
 ```C
-proto_template_protocol = proto_register_protocol (
+proto_template = proto_register_protocol (
 		"Template Protocol",
 		"Template",
 		"template"
@@ -401,28 +401,28 @@ static hf_register_info hf[] = {
 	{ &hf_template_id, 
 		{ "Template id", "template.id", 
 		  FT_UINT32, BASE_DEC, NULL, 0x0,
-		  "Some id for template protocol", HFILL }
+		  "Some id for the template protocol", HFILL }
 	},
 	{ &hf_template_data,
 		{ "Data", "template.data",
 		  FT_UINT32, BASE_HEX, NULL, 0x0,
-		  "Data section of template protocol", HFILL }
+		  "Data section of the template protocol", HFILL }
 	},
 
 	/* DATA_FIELDS */
 	{ &hf_template_data1,
 		{ "Data 1", "template.data.data1",
 		  FT_UINT32, BASE_HEX, NULL, TEMPLATE_DATA1_MASK,
-		  "Data 1 from template protocol", HFILL }
+		  "Data 1 from the template protocol", HFILL }
 	},
 	{ &hf_template_data2,
 		{ "Data 2", "template.data.data2",
 		  FT_UINT32, BASE_CUSTOM, CF_FUNC(&display_template_data2), TEMPLATE_DATA2_MASK,
-		  "Data 2 from template protocol", HFILL }
+		  "Data 2 from the template protocol", HFILL }
 	}
 };
 
-proto_register_field_array(proto_template_protocol, hf, array_length(hf));
+proto_register_field_array(proto_template, hf, array_length(hf));
 ```
 
 ##### Subtrees registration
@@ -468,14 +468,14 @@ The dissector tables are used to find a suitable dissector for the packet. Apart
 The [template protocol](#template-protocol) is registered in the "Integer tables", as it
 compares the `"tcp.port"` value to the `1234` port number.
 
-The definition of the `void proto_reg_handoff_template_protocol()` function:
+The definition of the `void proto_reg_handoff_template()` function:
 
 ```C
-void proto_reg_handoff_template_protocol (void)
+void proto_reg_handoff_template (void)
 {
 	static dissector_handle_t proto_handle;
 
-	proto_handle = create_dissector_handle(dissect, proto_template_protocol);
+	proto_handle = create_dissector_handle(dissect_template, proto_template);
 	dissector_add_uint("tcp.port", 1234, proto_handle);
 }
 ```
@@ -497,7 +497,7 @@ The arguments are:
   will follow its declaration.
 
 ```C
-static int dissect(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_);
+static int dissect_template(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_);
 ```
 
 Usually a dissect function can be split into 3 parts:
@@ -590,7 +590,7 @@ protocol itself is added to the lower protocol tree, and than a subtree is creat
 adding a protocol, a special length value `-1` can be used.
 
 ```C
-proto_item *top_tree_item = proto_tree_add_item(tree, proto_template_protocol, tvb, 0, -1, ENC_NA);
+proto_item *top_tree_item = proto_tree_add_item(tree, proto_template, tvb, 0, -1, ENC_NA);
 proto_tree *top_tree = proto_item_add_subtree(top_tree_item, ett_template);
 ```
 
