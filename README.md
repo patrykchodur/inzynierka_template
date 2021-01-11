@@ -1,7 +1,7 @@
 # Wireshark dissector template
 
 This project is meant to be used as guide for writing a Wireshark dissector.
-The resulting dissector will be a stand-alone plugin for Wireshark using `epan` API.
+The resulting dissector will be a stand-alone plugin for Wireshark using *epan* API.
 
 ## Table of contents
 
@@ -34,7 +34,7 @@ The resulting dissector will be a stand-alone plugin for Wireshark using `epan` 
 ## Requirements
 
 The Wireshark source code is required to build a dissector. It can be obtained from
-[here](https://gitlab.com/wireshark/wireshark). The project was tested with the `3.5.0`
+[here](https://gitlab.com/wireshark/wireshark). The project was tested with the *3.5.0*
 version of Wireshark.
 
 There are no other requirements for writing the plugin, aside from the requirements of
@@ -43,33 +43,33 @@ the Wireshark itself. A decent text editor and the `git` may be helpfull.
 ## Template files
 
 Two disssector files are provided for this guide:
-- `packet-template.c` - which contains a simple dissector for a template protocol. The file is
+- *packet-template.c* - which contains a simple dissector for a template protocol. The file is
   designed to be an expample of a dissector that can be compiled and tested.
-- `packet-template-bare.c` - which contains a bare template that cannot be compiled. Designed as
+- *packet-template-bare.c* - which contains a bare template that cannot be compiled. Designed as
   a starting point for writing a new dissector.
 
-Additionaly, there is a `CMakeLists.txt` file that can be used to compile the template
+Additionaly, there is a *CMakeLists.txt* file that can be used to compile the template
 dissector, or with just a few modifications used for an own dissector.
 
 ### Template protocol
 
-The template protocol, for which the `packet-template.c` dissector is written, contains 2 main fields:
-- id field - 4 bytes
-- data field - 4 bytes that are split into 2 fields:
-	- data1 - bits from 20 to 31 (mask `0xFFF00000`).
-	- data2 - bits from 0 to 19 (mask `0x000FFFFF`). When displayed, the value of `data2` field
+The template protocol, for which the *packet-template.c* dissector is written, contains 2 main fields:
+- *id* field - 4 bytes
+- *data* field - 4 bytes that are split into 2 fields:
+	- *data1* - bits from 20 to 31 (mask `0xFFF00000`).
+	- *data2* - bits from 0 to 19 (mask `0x000FFFFF`). When displayed, the value of *data2* field
 	  should be increased by 2.
 
-The packet is sent using the `TCP` protocol on port `1234`.
+The packet is sent using the *TCP* protocol on port *1234*.
 
 This protocol will be used in the [writing a dissector](#writing-a-dissector) chapter.
 
 ## Compiling a dissector
 
-The directory containing a dissectors source files needs to be linked to the `plugins/epan`
+The directory containing a dissectors source files needs to be linked to the *plugins/epan*
 directory of the Wireshark source tree. Resulting path must than be put into
-the `CMakeListsCustom.txt` file as a `CUSTOM_PLUGIN_SRC_DIR`. The `CMakeListsCustom.txt` file
-may not be present. If so, the `CMakeListsCustom.txt.example` file can be copied. Sample paths
+the *CMakeListsCustom.txt* file as a `CUSTOM_PLUGIN_SRC_DIR`. The *CMakeListsCustom.txt* file
+may not be present. If so, the *CMakeListsCustom.txt.example* file can be copied. Sample paths
 from the example file should be removed.
 
 The plugin can be compiled by using the following command at the top of the Wireshark source
@@ -79,8 +79,8 @@ tree.
 mkdir build && cd build && cmake .. && cmake --build . --target <dissector name>
 ```
 
-A dissector name is the name specified inside the `CMakeLists.txt` file for the dissector.
-For the template dissector the name is `template_dissector`. Alternatively, the whole
+A dissector name is the name specified inside the *CMakeLists.txt* file for the dissector.
+For the template dissector the name is *template_dissector*. Alternatively, the whole
 Wireshark project (including the dissector) can be compiled using:
 
 ```sh
@@ -93,16 +93,16 @@ replaced by the desired version.
 
 ## Installing a dissector
 
-If the dissector is compiled separately, the resulting dissector (ie. `*.so` file) can be copied
-into a propper `epan` directory of an installed Wireshark. Otherwise the plugin is already
+If the dissector is compiled separately, the resulting dissector (ie. *\*.so* file) can be copied
+into a propper *epan* directory of an installed Wireshark. Otherwise the plugin is already
 installed.
 
-The list of installed plugins, as well as the absolute path of the `epan` directory, can be
-found at `Help->About Wireshark->Plugins` tab.
+The list of installed plugins, as well as the absolute path of the *epan* directory, can be
+found at *Help->About Wireshark->Plugins* tab.
 
 ## Testing a dissector
 
-The easiest way to test a dissector is to use `.pcap` files containing captured packets.
+The easiest way to test a dissector is to use *.pcap* files containing captured packets.
 If packets are not available, the user can generate a packet with the `hexedit` tool, or some
 text editor. **Beware: most text editors add an extra new line at the end of the file.**
 
@@ -111,7 +111,7 @@ The packet can than be sent using the `netcat` tool:
 - `cat <test_packet> | netcat -c localhost 1234` to send the content of a *testpacket* file to
   `localhost` using `1234` port. `-c` option stands for "Close the connection at the `EOF`".
 
-To use `UDP`, the `-u` option must be added. `-v` for verbose output may be helpfull as well.
+To use *UDP*, the `-u` option must be added. `-v` for verbose output may be helpfull as well.
 
 The template dissector can be tested running `netcat -l -p 1234` in one terminal window,
 and `echo "testing" | netcat -c localhost 1234` in another terminal window. The Wireshark
@@ -119,8 +119,8 @@ must be running and monitoring the *loopback* interface.
 
 ## Writing a dissector
 
-The `packet-template.c`, `packet-template-bare.c` and `CMakeLists.txt` files are provided
-to help writing own dissectors. The dissector written in `packet-template.c` is used to
+The *packet-template.c*, *packet-template-bare.c* and *CMakeLists.txt* files are provided
+to help writing own dissectors. The dissector written in *packet-template.c* is used to
 discuss the structure, and the content, of a Wireshark dissector plugin.
 
 To write a new plugin, a programmer must write at least two files:
@@ -129,8 +129,8 @@ To write a new plugin, a programmer must write at least two files:
 
 ### CMakeLists.txt file
 
-The `CMakeLists.txt` file for a new dissector can be based on the file provided with this
-repository. It is based on the one from the `gryphon` plugin. Most of it's content does not
+The *CMakeLists.txt* file for a new dissector can be based on the file provided with this
+repository. It is based on the one from the *gryphon* plugin. Most of it's content does not
 have to be changed, except for these lines:
 - `set(PLUGIN_NAME template_dissector)` - specifies the dissector name.
 - `set_module_info(${PLUGIN_NAME} 0 0 1 0)` - sets the version of the dissector.
@@ -143,13 +143,13 @@ have to be changed, except for these lines:
   (no header files)
 
 This file will be included during build process by the `cmake` tool. The directory containing
-a `CMakeLists.txt` must be included in `CMakeListsCustom.txt`
+a *CMakeLists.txt* must be included in *CMakeListsCustom.txt*
 (see [compiling a dissector](#compiling-a-dissector)).
 
 ### Plugin source file
 
-A plugin can be written in just one `.c` file. Its structure will be discussed in this section.
-`packet-template.c` dissector is used as a reference. All "template" occurences should be replaced
+A plugin can be written in just one *.c* file. Its structure will be discussed in this section.
+*packet-template.c* dissector is used as a reference. All "template" occurences should be replaced
 with a desired name.
 
 The purpose of all used `static` specifiers is:
@@ -192,9 +192,9 @@ Depending of the protocol nature, it may be required to declare:
 
 The source code of a new dissector must include at least these files:
 - `"config.h"` - generated during the compilation of a plugin.
-- `<epan/packet.h>` - header file for the `epan` dissectors library.
+- `<epan/packet.h>` - header file for the *epan* dissectors library.
 
-Using custom libraries may require modifying the `CMakeLists.txt` file, but the *C Standard
+Using custom libraries may require modifying the *CMakeLists.txt* file, but the *C Standard
 Library* should be accessible without any problems.
 
 ##### Protocol handle
@@ -231,7 +231,7 @@ static int hf_template_data2 = -1;
 Subtree is a protocol element along with it's child elements and their subtrees.
 To simplify, a subtree is every element that can be expanded in GUI. Every subtree of
 the protocol has to be registered. This applies to the whole protocol tree as well,
-as it is considered to be a subtree for the lower level protocol (`TCP` for 
+as it is considered to be a subtree for the lower level protocol (*TCP* for 
 the [template protocol](#template-protocol)).
 
 The [template protocol](#template-protocol) has two subtrees:
@@ -360,16 +360,16 @@ struct header_field_info {
 };
 ```
 
-The full description of its fields is provided in the `README.dissector` file from the `doc`
+The full description of its fields is provided in the *README.dissector* file from the *doc*
 directory in the Wireshark source code. A brief description of each parameter:
 - `name` variable should be filled with a short name of the protocol field.
 - `abbrev` is used to provide a filter name for the protocol field. The filter name should be
   a dot separated path of the protocol field. Filter names for
   the [template protocol](#template-protocol) are:
-	- `template.id`
-	- `template.data`
-	- `template.data.data1`
-	- `template.data.data2`
+	- `"template.id"`
+	- `"template.data"`
+	- `"template.data.data1"`
+	- `"template.data.data2"`
 - `type` tells the Wireshark what to do with a field. The types are prefixed with `FT_`.
   Some examples are:
 	- `FT_UINT32` - 32 bits unsigned int
